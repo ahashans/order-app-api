@@ -22,6 +22,10 @@ const Order  = mongoose.model("Orders",{
         required:true,
         trim:true    
     },
-    
+    date: {
+        type: Date,
+        // `Date.now()` returns the current unix timestamp as a number
+        default: Date.now
+    }       
 })
 module.exports = Order
