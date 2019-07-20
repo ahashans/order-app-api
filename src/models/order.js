@@ -1,28 +1,27 @@
 const  mongoose = require('mongoose')
 const validator = require('validator')
-const User  = mongoose.Model("Users",{
-    fullName:{
-        type:String,
-        required:true,
-        trim:true
-    },
+const Order  = mongoose.model("Orders",{    
     email:{
         type:String,
         required:true,
         trim:true,
-        lowercase: true,
-        unique:true,
-        dropDups: true,
+        lowercase: true,                
         validate(value) {
             if (!validator.isEmail(value)) {
                 throw new Error('Email is invalid')
             }
         }
     },
-    password:{
+    item:{
         type:String,
         required:true,
         trim:true    
-    }
-
+    },
+    quantity:{
+        type:Number,
+        required:true,
+        trim:true    
+    },
+    
 })
+module.exports = Order
