@@ -1,15 +1,19 @@
 {
   "name": "order-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "An Order App",
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "example",
+    "heroku"
+  ],
+  "author": "Ahashan Alam Sojib",
+  "license": "MIT",
   "devDependencies": {
     "bcryptjs": "^2.4.3",
     "express": "^4.17.1",
