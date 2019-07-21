@@ -1,6 +1,6 @@
 const  mongoose = require('mongoose')
 const validator = require('validator')
-const Order  = mongoose.model("Orders",{    
+const orderSchema = mongoose.Schema({    
     email:{
         type:String,
         required:true,
@@ -28,4 +28,5 @@ const Order  = mongoose.model("Orders",{
         default: Date.now
     }       
 })
+const Order  = mongoose.model("Orders",orderSchema)
 module.exports = Order
