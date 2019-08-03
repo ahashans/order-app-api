@@ -31,7 +31,6 @@ router.get('/orders/me', auth, async (req, res) => {
         if(req.user.orders.length>0)
             return res.send(req.user.orders)
         return res.status(404).send()
-        // console.log(req.user.orders)
 
     }catch (e) {
         res.status(500).send(e)
