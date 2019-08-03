@@ -1,12 +1,16 @@
 const express = require('express')
 const Order = require('../models/order')
 const router = new express.Router()
+const auth = require('../middlewares/auth')
 
-router.post('/orders', async (req, res) => {
-    const order = new Order(req.body)
-
+router.post('/orders', auth,async (req, res) => {
+    const order = new Order({
+        ...req.body,
+        owner:req.user._id
+    })
     try {
         await order.save()
+        await order.populate('owner').execPopulate()
         res.status(201).send(order)
     } catch (e) {
         res.status(400).send(e)
@@ -21,7 +25,19 @@ router.get('/orders', async (req, res) => {
         res.status(500).send()
     }
 })
+router.get('/orders/me', auth, async (req, res) => {
+    try {
+        await req.user.populate('orders').execPopulate()
+        if(req.user.orders.length>0)
+            return res.send(req.user.orders)
+        return res.status(404).send()
+        // console.log(req.user.orders)
 
+    }catch (e) {
+        res.status(500).send(e)
+    }
+
+})
 router.get('/orders/:id', async (req, res) => {
     const _id = req.params.id
 
