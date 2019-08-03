@@ -16,5 +16,10 @@ const itemSchema = mongoose.Schema({
         trim:true
     }
 })
+itemSchema.virtual('orders',{
+    ref:'Orders',
+    localField:'_id',
+    foreignField:'item'
+})
 const Item  = mongoose.model("Items",itemSchema)
 module.exports = Item

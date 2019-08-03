@@ -2,9 +2,9 @@ const  mongoose = require('mongoose')
 const validator = require('validator')
 const orderSchema = mongoose.Schema({
     item:{
-        type:String,
+        type:mongoose.Schema.Types.ObjectId,
         required:true,
-        trim:true    
+        ref:'Items'
     },
     quantity:{
         type:Number,

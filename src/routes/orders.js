@@ -11,6 +11,7 @@ router.post('/orders', auth,async (req, res) => {
     try {
         await order.save()
         await order.populate('owner').execPopulate()
+        await order.populate('item').execPopulate()
         res.status(201).send(order)
     } catch (e) {
         res.status(400).send(e)
@@ -19,9 +20,15 @@ router.post('/orders', auth,async (req, res) => {
 
 router.get('/orders', async (req, res) => {
     try {
-        const order = await Order.find({})
-        res.send(order)
+        const orders = await Order.find().populate('owner').populate('item')
+        // await orders.populate('owner').execPopulate()
+        // await orders.populate('item').execPopulate()
+        if(!orders){
+            return res.status(404).send()
+        }
+        res.send(orders)
     } catch (e) {
+        // console.log(e)
         res.status(500).send()
     }
 })
