@@ -11,7 +11,7 @@ router.post('/orders', auth,async (req, res) => {
     try {
         await order.save()
         await order.populate('owner').execPopulate()
-        await order.populate('item').execPopulate()
+        await order.populate('details.item').execPopulate()
         res.status(201).send(order)
     } catch (e) {
         res.status(400).send(e)
@@ -20,7 +20,7 @@ router.post('/orders', auth,async (req, res) => {
 
 router.get('/orders', async (req, res) => {
     try {
-        const orders = await Order.find().populate('owner').populate('item')
+        const orders = await Order.find().populate('owner').populate('details.item')
         // await orders.populate('owner').execPopulate()
         // await orders.populate('item').execPopulate()
         if(!orders){
@@ -40,6 +40,7 @@ router.get('/orders/me', auth, async (req, res) => {
         return res.status(404).send()
 
     }catch (e) {
+        console.log(e)
         res.status(500).send(e)
     }
 
@@ -48,12 +49,11 @@ router.get('/orders/:id', async (req, res) => {
     const _id = req.params.id
 
     try {
-        const order = await Order.findById(_id)
+        const order = await Order.findById(_id).populate('details.item')
 
         if (!order) {
             return res.status(404).send()
         }
-
         res.send(order)
     } catch (e) {
         res.status(500).send()
@@ -96,6 +96,13 @@ router.delete('/orders/:id', async (req, res) => {
         res.status(500).send()
     }
 })
-
+router.delete('/orders', async(req,res)=>{
+    try {
+        await Order.remove()
+        return res.send()
+    }catch (e) {
+        return res.status(500).send()
+    }
+})
 
 module.exports = router
