@@ -5,6 +5,10 @@ const router = new express.Router()
 const auth = require('../middlewares/auth')
 
 router.post('/messages/:threadId',auth, async (req, res) => {    
+    
+});
+
+router.post('/messages/new/:recipient', async (req, res) => {
     try {
         const messageThread = new MessageThread({
             participants:[
@@ -13,14 +17,17 @@ router.post('/messages/:threadId',auth, async (req, res) => {
             ]
         })
         await messageThread.save()
-        return res.status(201).send(item)
+        const message = new Message({
+            ...req.body,
+            threadId:messageThread._id,
+            sender:req.user._id
+        })
+        await message.save()
+
+        return res.status(201).send(message)
     } catch (e) {
         return res.status(500).send()
     }
-});
-
-router.post('/messages/new/:recipient', async (req, res) => {
-    
 });
 
 module.exports = router
