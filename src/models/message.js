@@ -8,13 +8,16 @@ const messageSchema = mongoose.Schema({
     body:[
         {
             text:{
-                type:mongoose.Schema.Types.String
+                type:mongoose.Schema.Types.String,
+                default:""
             },
             emoji:{
-                type:mongoose.Schema.Types.String
+                type:mongoose.Schema.Types.String,
+                default:""
             },
             filePath:{
-                type:mongoose.Schema.Types.String
+                type:mongoose.Schema.Types.String,
+                default:""
             }
         }
     ],

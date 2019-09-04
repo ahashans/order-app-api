@@ -8,11 +8,15 @@ router.post('/messages/:threadId',auth, async (req, res) => {
     
 });
 
-router.post('/messages/new/:recipient', async (req, res) => {
+router.post('/messages/new/:recipient', auth, async (req, res) => {
+
     try {
+        if(!req.params.recipient){
+            throw Error("Recipient not found!")
+        }
         const messageThread = new MessageThread({
             participants:[
-                req.body.recipient,
+                req.params.recipient,
                 req.user._id,
             ]
         })
@@ -26,8 +30,26 @@ router.post('/messages/new/:recipient', async (req, res) => {
 
         return res.status(201).send(message)
     } catch (e) {
+        console.log(e)
         return res.status(500).send()
     }
 });
+router.post("/messages/reply/:threadId",auth, async (req,res)=>{
+    try{
+        if(!req.params.threadId){
+            throw Error("Thread Not Found");
+        }
+        const reply = new Message({
+            ...req.body,
+            sender:req.user._id,
+            threadId: req.params.threadId,
+        });
+        await reply.save();
+        return res.send(reply);
+    }catch (e) {
+        console.log(e)
+        return res.status(500).send();
+    }
 
-module.exports = router
+});
+module.exports = router;
