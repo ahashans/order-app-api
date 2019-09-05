@@ -26,7 +26,9 @@ const messageSchema = mongoose.Schema({
         required:true,
         ref:'Users'
     },
-    
+    seenAt:{
+        type:mongoose.Schema.Types.Date
+    }
 },{
     timestamps:true
 });
