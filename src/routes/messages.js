@@ -5,48 +5,41 @@ const router = new express.Router();
 const auth = require('../middlewares/auth');
 
 router.post('/messages/:threadId',auth, async (req, res) => {    
-    
+    try{
+        if(!req.params.threadId){
+            throw Error("threadId not found!")
+        }
+        if(!req.body.recipient){
+            throw Error("Recipient not found!");
+        }
+        const message = new Message({
+        ...req.body,
+        threadId:req.params.threadId,
+        sender:req.user._id
+    });
+        await message.save()
+        return res.status(201).send(message);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).send()
+    }
 });
 
 router.post('/messages', auth, async (req, res) => {
     try {        
         if(!req.body.recipient){
             throw Error("Recipient not found!");
-        }           
-        if(!req.body.threadId){
-            const messageThread = await MessageThread.find({participants:{$in:[req.body.recipient,req.user._id,]}});
-            console.log("checking if messageThread already exists", messageThread);
-            if(messageThread.length!==0){
-                const message = new Message({
-                    ...req.body,
-                    threadId:messageThread[0]._id,
-                    sender:req.user._id
-                });
-                await message.save()
-                return res.status(201).send(message);                 
-            }
-            else{
-                console.log("message thread doesn't exists");
-                const messageThread = new MessageThread({
-                    participants:[
-                        req.body.recipient,
-                        req.user._id,
-                    ]
-                }); 
-                await messageThread.save();
-                const message = new Message({
-                    ...req.body,
-                    threadId:messageThread._id,
-                    sender:req.user._id
-                });              
-                await message.save()
-                return res.status(201).send(message);
-            }            
-            
-        }                
+        }
+        const messageThread = new MessageThread({
+            participants:[
+                req.body.recipient,
+                req.user._id,
+            ]
+        });
+        await messageThread.save();
         const message = new Message({
             ...req.body,
-            threadId:req.body.threadId,
+            threadId:messageThread._id,
             sender:req.user._id
         });
         await message.save()
