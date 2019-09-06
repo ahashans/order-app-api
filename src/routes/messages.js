@@ -5,42 +5,45 @@ const router = new express.Router();
 const auth = require('../middlewares/auth');
 
 router.post('/messages/:threadId',auth, async (req, res) => {    
-    
+    try{
+        if(!req.params.threadId){
+            throw Error("threadId not found!")
+        }
+        if(!req.body.recipient){
+            throw Error("Recipient not found!");
+        }
+        const message = new Message({
+        ...req.body,
+        threadId:req.params.threadId,
+        sender:req.user._id
+    });
+        await message.save()
+        return res.status(201).send(message);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).send()
+    }
 });
 
 router.post('/messages', auth, async (req, res) => {
-    try {
-        if(!req.body.threadId){
-            if(!req.body.recipient){
-                throw Error("Recipient not found!");
-            }
-            const messageThread = new MessageThread({
-                participants:[
-                    req.body.recipient,
-                    req.user._id,
-                ]
-            });
-            await messageThread.save();
-            const message = new Message({
-                ...req.body,
-                threadId:messageThread._id,
-                sender:req.user._id
-            });
-            await message.save()
-            return res.status(201).send(message);
-        }else{
-            if(!req.body.threadId){
-                throw Error("Thread Not Found");
-            }
-            const reply = new Message({
-                ...req.body,
-                sender:req.user._id,
-                threadId: req.body.threadId,
-            });
-            await reply.save();
-            return res.send(reply);
+    try {        
+        if(!req.body.recipient){
+            throw Error("Recipient not found!");
         }
-
+        const messageThread = new MessageThread({
+            participants:[
+                req.body.recipient,
+                req.user._id,
+            ]
+        });
+        await messageThread.save();
+        const message = new Message({
+            ...req.body,
+            threadId:messageThread._id,
+            sender:req.user._id
+        });
+        await message.save()
+        return res.status(201).send(message);
     } catch (e) {
         console.log(e);
         return res.status(500).send()
