@@ -7,11 +7,14 @@ router.post('/users', async (req, res) => {
     const user = new User(req.body)
 
     try {
-        await user.save()
-        const token = await user.generateAuthToken()
-        res.status(201).send({user, token})
+        const isDuplicate = await User.isDuplicateUser(user.email);
+        if(!isDuplicate){
+            await user.save()
+            const token = await user.generateAuthToken()
+            res.status(201).send({user, token})
+        }        
     } catch (e) {
-        res.status(400).send(e)
+        res.status(400).send({msg:e.message})
     }
 })
 
@@ -22,7 +25,7 @@ router.post('/users/login', async (req, res) => {
         const token = await user.generateAuthToken()
         return res.send({user, token})
     } catch (e) {
-        return res.status(400).send()  
+        res.status(400).send({msg:e.message})  
     }
 })
 
@@ -34,7 +37,7 @@ router.post('/users/logout', auth, async(req,res)=>{
         await req.user.save()
         res.send()
     } catch (e) {
-        res.status(500).send()
+        res.status(500).send({msg:e.message})
     }
 })
 
@@ -44,7 +47,7 @@ router.post('/users/logoutAll', auth, async(req,res)=>{
         await req.user.save()
         res.send()
     } catch (e) {
-        res.status(500).send()
+        res.status(500).send({msg:e.message})
     }
 })
 
@@ -60,10 +63,10 @@ router.get('/users', async (req, res) => {
             return res.send(users)
         }
         console.log(users);
-        return res.status(404).send()
+        return res.status(404).send({msg:e.message})
     }catch(e){
         console.log(e);
-        return res.status(500).send(e)
+        return res.status(500).send({msg:e.message})
     }
 })
 
@@ -73,7 +76,7 @@ router.patch('/users/me', auth, async (req, res) => {
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
 
     if (!isValidOperation) {
-        return res.status(400).send({ error: 'Invalid updates!' })
+        return res.status(400).send({msg:"Validation Error"})
     }
 
     try {
@@ -82,7 +85,7 @@ router.patch('/users/me', auth, async (req, res) => {
         return res.send(req.user)
     } catch (e) {
         console.log(e)
-        res.status(400).send(e)
+        res.status(400).send({msg:e.message})
     }
 })
 
@@ -92,7 +95,7 @@ router.delete('/users/me',auth, async (req, res) => {
         res.send(req.user)
     } catch (e) {
         console.log(e)
-        res.status(500).send()
+        res.status(500).send({msg:e.message})
     }
 })
 

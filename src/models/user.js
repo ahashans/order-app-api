@@ -68,15 +68,23 @@ userSchema.methods.toJSON = function(){
 userSchema.statics.findByCredentials = async(email,password) =>{
     const user = await User.findOne({email})
     if(!user){
-        throw new Error('Unable to login')
+        throw new Error('Invalid Email')
     }
-    const isMath = await bcrypt.compare(password, user.password)
+    const isMatch = await bcrypt.compare(password, user.password)
 
-    if(!isMath){
-        throw new Error('Unable to login')
+    if(!isMatch){
+        throw new Error('Invalid Password')
     }
 
     return user
+}
+
+userSchema.statics.isDuplicateUser = async(email) =>{
+    const user = await User.findOne({email})
+    if(user){
+        throw new Error('Duplicate Email')
+    }
+    return false    
 }
 
 userSchema.pre('save', async function(next){
