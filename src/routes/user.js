@@ -98,5 +98,18 @@ router.delete('/users/me',auth, async (req, res) => {
         res.status(500).send({msg:e.message})
     }
 })
-
+router.get('/users/search/:email', auth, async(req,res)=>{
+    try {
+        const user = await User.findByEmail(req.params.email)
+        if(!user){
+            return res.status(404).send({msg:"User Not Found"})
+        }
+        const userObj = user.toObject()
+        delete userObj.password
+        delete userObj.tokens
+        return  res.status(202).send(userObj)
+    } catch (e) {
+        return res.status(500).send({msg:e.message})
+    }
+})
 module.exports = router

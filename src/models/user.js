@@ -46,10 +46,15 @@ userSchema.virtual('orders',{
     localField: '_id',
     foreignField:'owner'
 })
-
+userSchema.virtual('groups',{
+    ref:'Groups',
+    localField:'_id',
+    foreignField:'participants'
+})
 userSchema.methods.generateAuthToken = async function(){
     const user = this
-    const token = jwt.sign({_id:user._id.toString()}, 'thisismynewapp')
+    const token = jwt.sign({_id:user._id.toString(), name:user.name},
+        'OrderAppBackend',{ expiresIn: 60 * 60 * 24 * 7})
     user.tokens = user.tokens.concat({token})
     await user.save()
     return token
@@ -78,7 +83,10 @@ userSchema.statics.findByCredentials = async(email,password) =>{
 
     return user
 }
-
+userSchema.statics.findByEmail = async (email)=>{
+    const user = await User.findOne({email})
+    return user;
+}
 userSchema.statics.isDuplicateUser = async(email) =>{
     const user = await User.findOne({email})
     if(user){
