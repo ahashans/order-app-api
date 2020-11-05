@@ -2,17 +2,16 @@ const express = require('express')
 const Group = require('../models/group')
 const router = new express.Router()
 const auth = require('../middlewares/auth')
-const {serializeError} = require('serialize-error')
-
+const { serializeError } = require('serialize-error')
+const _ = require('lodash');
 router.use('/groups', auth)
 
 
-router.get('/groups', auth, async (req, res) => {
+router.get('/groups', auth, async(req, res) => {
     try {
         await req.user.populate({
             path: 'groups',
-            populate: [
-                {
+            populate: [{
                     path: 'creator',
                 },
                 {
@@ -28,7 +27,7 @@ router.get('/groups', auth, async (req, res) => {
         res.status(500).send(serializeError(e))
     }
 })
-router.get('/groups/all', async (req, res) => {
+router.get('/groups/all', async(req, res) => {
     try {
         const groups = await Group.find().populate('creator').populate('participants')
         if (!groups) {
@@ -39,7 +38,7 @@ router.get('/groups/all', async (req, res) => {
         res.status(500).send(serializeError(e))
     }
 })
-router.post('/groups', auth, async (req, res) => {
+router.post('/groups', auth, async(req, res) => {
     const group = new Group({
         ...req.body,
         creator: req.user._id,
@@ -47,8 +46,7 @@ router.post('/groups', auth, async (req, res) => {
     })
     try {
         await group.save()
-        await group.populate([
-            {
+        await group.populate([{
                 path: 'creator',
             },
             {
@@ -60,18 +58,61 @@ router.post('/groups', auth, async (req, res) => {
         res.status(400).send(serializeError(e))
     }
 })
-router.patch('/groups/:id', async (req, res) => {
+
+router.patch('/groups/:id/join', auth, async(req, res) => {
+
+    try {
+        let group = await Group.findById(req.params.id)
+        if (!group) {
+            return res.status(404).send({ error: 'Group Not Found' })
+        }
+        if (group.participants.length && _.find(group.participants, id => id.equals(req.user._id))) {
+            return res.status(208).send()
+        }
+        group.participants.push(req.user._id);
+        await group.save()
+        if (!group) {
+            return res.status(404).send()
+        }
+        res.send(group)
+    } catch (e) {
+        res.status(400).send(serializeError(e))
+    }
+})
+
+router.patch('/groups/:id/leave', auth, async(req, res) => {
+
+    try {
+        let group = await Group.findById(req.params.id)
+        if (!group) {
+            return res.status(404).send({ error: 'Group Not Found' })
+        }
+        if (group.participants.length && _.find(group.participants, id => id.equals(req.user._id)) === undefined) {
+            return res.status(208).send()
+        }
+        group.participants = group.participants.filter(id => !id.equals(req.user._id));
+        await group.save()
+        if (!group) {
+            return res.status(404).send()
+        }
+        res.send(group)
+    } catch (e) {
+        res.status(400).send(serializeError(e))
+    }
+})
+
+router.patch('/groups/:id', async(req, res) => {
     const updates = Object.keys(req.body)
     const allowedUpdates = ['name', 'participants']
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
 
     if (!isValidOperation) {
-        return res.status(400).send({error: 'Invalid updates!'})
+        return res.status(400).send({ error: 'Invalid updates!' })
     }
     try {
         const group = await Group.findById(req.params.id)
         if (!group) {
-            return res.status(404).send({error: 'Group Not Found'})
+            return res.status(404).send({ error: 'Group Not Found' })
         }
         updates.forEach(update => group[update] = req.body[update])
         await group.save()
@@ -86,11 +127,27 @@ router.patch('/groups/:id', async (req, res) => {
     }
 })
 
-router.delete('/groups/:id', async (req, res) => {
+
+
+
+router.delete('/groups', async(req, res) => {
+    try {
+        const groups = await Group.find().populate('creator')
+        if (!groups.length) {
+            return res.status(404).send({ error: "No Group Found" })
+        }
+        await Group.deleteMany({});
+        return res.status(200).send([])
+    } catch (e) {
+        res.status(500).send(serializeError(e))
+    }
+})
+
+router.delete('/groups/:id', async(req, res) => {
     try {
         const group = await Group.findByIdAndDelete(req.params.id)
         if (!group) {
-            return res.status(404).send({error: "Group Not Found"})
+            return res.status(404).send({ error: "Group Not Found" })
         }
         await group.save()
         return res.send(group)
