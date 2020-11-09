@@ -14,7 +14,11 @@ router.post("/users", async (req, res) => {
       res.status(201).send({ user, token });
     }
   } catch (e) {
-    res.status(400).send({ msg: e.message });
+    if (e.message === "Duplicate Email") {
+      res.status(409).send({ msg: e.message });
+    } else {
+      res.status(400).send({ msg: e.message });
+    }
   }
 });
 
