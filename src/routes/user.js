@@ -31,7 +31,11 @@ router.post("/users/login", async (req, res) => {
     const token = await user.generateAuthToken(req.body.keepLoggedIn);
     return res.send({ user, token });
   } catch (e) {
-    res.status(400).send({ msg: e.message });
+    if (e.message === "Invalid Email" || e.message === "Invalid Password") {
+      res.status(401).send({ msg: e.message });
+    } else {
+      res.status(400).send({ msg: e.message });
+    }
   }
 });
 
