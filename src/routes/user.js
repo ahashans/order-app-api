@@ -2,6 +2,7 @@ const express = require("express");
 const User = require("../models/user");
 const auth = require("../middlewares/auth");
 const router = new express.Router();
+const { serializeError } = require("serialize-error");
 
 router.post("/users", async (req, res) => {
   const user = new User(req.body);
@@ -111,16 +112,27 @@ router.delete("/users/me", auth, async (req, res) => {
 });
 router.get("/users/search/:email", auth, async (req, res) => {
   try {
-    const user = await User.findByEmail(req.params.email);
-    if (!user) {
-      return res.status(404).send({ msg: "User Not Found" });
+    let users = await User.find({});
+    if (!users) {
+      return res.status(404).send({ msg: "No user exists." });
     }
-    const userObj = user.toObject();
-    delete userObj.password;
-    delete userObj.tokens;
-    return res.status(202).send(userObj);
+    let matchedUsers = users.filter(
+      (user) =>
+        user.email !== req.user.email &&
+        user.email.toLowerCase().match(req.params.email.toLowerCase()) !== null
+    );
+    if (!matchedUsers) {
+      return res.status(404).send({ msg: "No user found." });
+    }
+    matchedUsers = matchedUsers.map((user) => {
+      let userObj = user.toObject();
+      delete userObj.password;
+      delete userObj.tokens;
+      return userObj;
+    });
+    return res.status(202).send(matchedUsers);
   } catch (e) {
-    return res.status(500).send({ msg: e.message });
+    return res.status(500).send(serializeError(e));
   }
 });
 module.exports = router;
